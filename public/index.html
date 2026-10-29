@@ -37,6 +37,12 @@ main{max-width:940px;margin:-1.35rem auto 0;padding:0 1.25rem 4rem}
 pre{margin:.65rem 0 0;color:#657287;font-family:inherit;font-size:.88rem;line-height:1.65;white-space:pre-wrap}
 .empty,.error{padding:1.5rem;border:1px solid #e4e9f1;border-radius:1rem;color:#657287;background:#fff}
 .error{color:#a42d39}
+.pagination{display:flex;align-items:center;justify-content:center;gap:.9rem;margin-top:1.25rem}
+.pagination button{min-height:2.5rem;padding:.55rem .9rem;border:1px solid #dce3ed;border-radius:.7rem;color:#263b57;background:#fff;font:inherit;font-size:.85rem;font-weight:650;cursor:pointer;transition:background .18s ease,border-color .18s ease}
+.pagination button:hover:not(:disabled){border-color:#9bb5d1;background:#edf4fb}
+.pagination button:focus-visible{outline:3px solid #7bb7ed;outline-offset:2px}
+.pagination button:disabled{color:#a4adba;background:#f1f3f6;cursor:not-allowed}
+.page-status{min-width:8rem;color:#657287;font-size:.82rem;text-align:center}
 @media(max-width:600px){header{padding:1.75rem 1.25rem 3.25rem}.section-heading{align-items:start;flex-direction:column;gap:.3rem}.card{padding:1.1rem 1rem 1.1rem 1.25rem}.card-top{align-items:start;flex-direction:column-reverse;gap:.55rem}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
 </style>
@@ -54,9 +60,60 @@ pre{margin:.65rem 0 0;color:#657287;font-family:inherit;font-size:.88rem;line-he
     <p>Updates rechtstreeks van het NCSC</p>
   </div>
   <div id="list" aria-live="polite"><div class="empty">Adviezen laden…</div></div>
+  <div id="pagination"></div>
 </main>
 <script>
 const el = (t, props = {}, ...kids) => { const n = Object.assign(document.createElement(t), props); n.append(...kids); return n; };
+const PAGE_SIZE = 5;
+let advisories = [];
+let currentPage = 1;
+
+function renderAdvisories() {
+  const list = document.getElementById('list');
+  const pagination = document.getElementById('pagination');
+  const pageCount = Math.ceil(advisories.length / PAGE_SIZE);
+  currentPage = Math.min(currentPage, Math.max(pageCount, 1));
+
+  if (!advisories.length) {
+    list.replaceChildren(el('div', { className: 'empty', textContent: 'Geen advisories beschikbaar.' }));
+    pagination.replaceChildren();
+    return;
+  }
+
+  const pageItems = advisories.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  list.replaceChildren(...pageItems.map((a) => {
+    const card = el('div', { className: 'card ' + a.severity });
+    const severity = a.severity ? a.severity : 'Advisory';
+    const top = el('div', { className: 'card-top' },
+      el('span', { className: 'severity', textContent: severity }),
+      el('span', { className: 'meta', textContent: (a.published ? new Date(a.published).toLocaleString('nl-NL') : '') }));
+    const h = el('h3', {}, a.link ? el('a', { href: a.link, target: '_blank', rel: 'noopener', textContent: a.title }) : a.title);
+    card.append(top, h, el('pre', { textContent: a.summary }));
+    return card;
+  }));
+
+  if (pageCount <= 1) {
+    pagination.replaceChildren();
+    return;
+  }
+
+  const start = (currentPage - 1) * PAGE_SIZE + 1;
+  const end = Math.min(currentPage * PAGE_SIZE, advisories.length);
+  const nav = el('nav', { className: 'pagination' });
+  nav.setAttribute('aria-label', 'Paginering advisories');
+  nav.append(
+    el('button', { type: 'button', textContent: 'Vorige', disabled: currentPage === 1, onclick: () => changePage(currentPage - 1) }),
+    el('span', { className: 'page-status', textContent: `${start}–${end} van ${advisories.length}` }),
+    el('button', { type: 'button', textContent: 'Volgende', disabled: currentPage === pageCount, onclick: () => changePage(currentPage + 1) }),
+  );
+  pagination.replaceChildren(nav);
+}
+
+function changePage(page) {
+  currentPage = page;
+  renderAdvisories();
+}
+
 async function load() {
   const list = document.getElementById('list');
   try {
@@ -66,22 +123,14 @@ async function load() {
     status.textContent = d.updatedAt
       ? 'Bijgewerkt: ' + new Date(d.updatedAt).toLocaleString('nl-NL') : 'Nog niet geladen';
     if (d.error) status.append(' – fout: ' + d.error);
-    list.replaceChildren(...d.advisories.map((a) => {
-      const card = el('div', { className: 'card ' + a.severity });
-      const severity = a.severity ? a.severity : 'Advisory';
-      const top = el('div', { className: 'card-top' },
-        el('span', { className: 'severity', textContent: severity }),
-        el('span', { className: 'meta', textContent: (a.published ? new Date(a.published).toLocaleString('nl-NL') : '') }));
-      const h = el('h3', {}, a.link ? el('a', { href: a.link, target: '_blank', rel: 'noopener', textContent: a.title }) : a.title);
-      card.append(top, h, el('pre', { textContent: a.summary }));
-      return card;
-    }));
-    if (!d.advisories.length) list.replaceChildren(el('div', { className: 'empty', textContent: 'Geen advisories beschikbaar.' }));
+    advisories = d.advisories;
+    renderAdvisories();
     setTimeout(load, Math.max(1, d.refreshMinutes) * 60000);
   } catch (e) {
     document.getElementById('status').classList.add('has-error');
     document.getElementById('status').textContent = 'Verbinding met de feed mislukt';
     list.replaceChildren(el('div', { className: 'error', textContent: 'Kon gegevens niet laden. Er wordt opnieuw geprobeerd.' }));
+    document.getElementById('pagination').replaceChildren();
     setTimeout(load, 60000);
   }
 }
