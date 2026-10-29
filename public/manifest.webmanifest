@@ -1,8 +1,8 @@
 {
   "name": "Nathan's Security Intelligence",
   "short_name": "Security",
-  "description": "Recente beveiligingsadvisories van het NCSC",
-  "lang": "nl",
+  "description": "Recent security advisories from the NCSC",
+  "lang": "en",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

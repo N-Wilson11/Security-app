@@ -21,7 +21,7 @@ module.exports = async function handler(req, res) {
       error: null,
     });
   } catch (error) {
-    console.error('Verversen mislukt:', error.message);
+    console.error('Refresh failed:', error.message);
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).json({
       source: FEED_URL,

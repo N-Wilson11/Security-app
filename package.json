@@ -1,7 +1,7 @@
 {
   "name": "security-app",
   "version": "1.0.0",
-  "description": "Dashboard met recente beveiligingsadvisories van het NCSC",
+  "description": "Dashboard with recent security advisories from the NCSC",
   "main": "src/local-server.js",
   "scripts": {
     "start": "node src/local-server.js",
