@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recente security risico's</title>
+<style>
+body{font-family:system-ui,sans-serif;margin:0;background:#f4f5f7;color:#222}
+header{background:#154273;color:#fff;padding:1rem 1.5rem}
+main{max-width:900px;margin:1rem auto;padding:0 1rem}
+.card{background:#fff;border-left:6px solid #999;border-radius:4px;padding:.8rem 1rem;margin:.7rem 0;box-shadow:0 1px 2px #0002}
+.kritiek{border-color:#b00020}.hoog{border-color:#e65100}.middel{border-color:#f9a825}.laag{border-color:#2e7d32}
+.meta{font-size:.85rem;color:#666}.err{color:#b00020}
+pre{white-space:pre-wrap;font-family:inherit;margin:.4rem 0}
+</style>
+</head>
+<body>
+<header><h1>Recente security risico's</h1><div id="status"></div></header>
+<main id="list">Laden…</main>
+<script>
+const el = (t, props = {}, ...kids) => { const n = Object.assign(document.createElement(t), props); n.append(...kids); return n; };
+async function load() {
+  const list = document.getElementById('list');
+  try {
+    const d = await (await fetch('/api/advisories')).json();
+    document.getElementById('status').textContent = d.updatedAt
+      ? 'Laatst bijgewerkt: ' + new Date(d.updatedAt).toLocaleString('nl-NL') : 'Nog niet geladen';
+    if (d.error) document.getElementById('status').append(' – fout: ' + d.error);
+    list.replaceChildren(...d.advisories.map((a) => {
+      const card = el('div', { className: 'card ' + a.severity });
+      const h = el('h3', {}, a.link ? el('a', { href: a.link, target: '_blank', rel: 'noopener', textContent: a.title }) : a.title);
+      card.append(h,
+        el('div', { className: 'meta', textContent: (a.published ? new Date(a.published).toLocaleString('nl-NL') : '') }),
+        el('pre', { textContent: a.summary }));
+      return card;
+    }));
+    if (!d.advisories.length) list.textContent = 'Geen advisories beschikbaar.';
+    setTimeout(load, Math.max(1, d.refreshMinutes) * 60000);
+  } catch (e) {
+    list.textContent = 'Kon gegevens niet laden';
+    setTimeout(load, 60000);
+  }
+}
+load();
+</script>
+</body>
+</html>
