@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    ports:
+      - "${PORT:-3005}:${PORT:-3005}"
+    environment:
+      PORT: "${PORT:-3005}"
+      REFRESH_MINUTES: "${REFRESH_MINUTES:-15}"
+      FEED_URL: "${FEED_URL:-https://advisories.ncsc.nl/rss/advisories}"
+    restart: unless-stopped
