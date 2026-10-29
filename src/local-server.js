@@ -21,15 +21,26 @@ async function refresh() {
   }
 }
 
+const PUBLIC_DIR = path.join(__dirname, '..', 'public');
+const STATIC_FILES = {
+  '/': ['index.html', 'text/html; charset=utf-8'],
+  '/manifest.webmanifest': ['manifest.webmanifest', 'application/manifest+json; charset=utf-8'],
+  '/icons/icon.svg': ['icons/icon.svg', 'image/svg+xml'],
+  '/icons/icon-192.png': ['icons/icon-192.png', 'image/png'],
+  '/icons/icon-512.png': ['icons/icon-512.png', 'image/png'],
+  '/icons/apple-touch-icon.png': ['icons/apple-touch-icon.png', 'image/png'],
+};
+
 function createServer() {
   return http.createServer((req, res) => {
     const { pathname } = new URL(req.url, 'http://localhost');
     if (pathname === '/api/advisories') {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ source: FEED_URL, refreshMinutes: REFRESH_MINUTES, ...state }));
-    } else if (pathname === '/') {
-      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      fs.createReadStream(path.join(__dirname, '..', 'public', 'index.html')).pipe(res);
+    } else if (Object.hasOwn(STATIC_FILES, pathname)) {
+      const [file, type] = STATIC_FILES[pathname];
+      res.writeHead(200, { 'Content-Type': type });
+      fs.createReadStream(path.join(PUBLIC_DIR, file)).pipe(res);
     } else {
       res.writeHead(404).end('Niet gevonden');
     }
