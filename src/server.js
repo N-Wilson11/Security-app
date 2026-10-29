@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { fetchAdvisories, FEED_URL } = require('./feed');
 
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = Number(process.env.PORT) || 3005;
 const REFRESH_MINUTES = Number(process.env.REFRESH_MINUTES) || 15;
 
 const state = { advisories: [], updatedAt: null, error: null };

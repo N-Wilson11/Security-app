@@ -5,39 +5,83 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Recente security risico's</title>
 <style>
-body{font-family:system-ui,sans-serif;margin:0;background:#f4f5f7;color:#222}
-header{background:#154273;color:#fff;padding:1rem 1.5rem}
-main{max-width:900px;margin:1rem auto;padding:0 1rem}
-.card{background:#fff;border-left:6px solid #999;border-radius:4px;padding:.8rem 1rem;margin:.7rem 0;box-shadow:0 1px 2px #0002}
-.kritiek{border-color:#b00020}.hoog{border-color:#e65100}.middel{border-color:#f9a825}.laag{border-color:#2e7d32}
-.meta{font-size:.85rem;color:#666}.err{color:#b00020}
-pre{white-space:pre-wrap;font-family:inherit;margin:.4rem 0}
+*{box-sizing:border-box}
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#17233b;background:#f4f6fa;font-synthesis:none;text-rendering:optimizeLegibility}
+body{min-width:320px;margin:0;background:radial-gradient(ellipse at 85% 0%,#dce8f8 0,transparent 34rem),#f4f6fa}
+header{position:relative;overflow:hidden;padding:2.5rem max(1.25rem,calc((100vw - 940px)/2)) 3.75rem;color:#f8fbff;background:linear-gradient(120deg,#101d36 0%,#172d50 58%,#204c75 100%)}
+header::after{position:absolute;top:-11rem;right:max(0px,calc((100vw - 1100px)/2));width:27rem;height:27rem;border:1px solid #ffffff20;border-radius:50%;box-shadow:0 0 0 3rem #ffffff08,0 0 0 6rem #ffffff06;content:"";pointer-events:none}
+.brand{display:flex;align-items:center;gap:.65rem;color:#b9d6f2;font-size:.75rem;font-weight:750;letter-spacing:.14em;text-transform:uppercase}
+.brand-mark{display:grid;width:2rem;height:2rem;place-items:center;border:1px solid #ffffff38;border-radius:.65rem;color:#fff;background:#ffffff12;font-size:.9rem;letter-spacing:0}
+header h1{position:relative;margin:1.75rem 0 .45rem;font-size:clamp(2rem,5vw,3rem);font-weight:720;letter-spacing:-.045em;line-height:1.08}
+.subtitle{position:relative;max-width:39rem;margin:0;color:#c0ccdc;font-size:1rem;line-height:1.65}
+#status{position:relative;display:inline-flex;align-items:center;gap:.55rem;margin-top:1.35rem;padding:.5rem .75rem;border:1px solid #ffffff24;border-radius:999px;color:#e3edf8;background:#ffffff0d;font-size:.8rem}
+#status::before{width:.45rem;height:.45rem;border-radius:50%;background:#71d7a2;content:""}
+#status.has-error{color:#ffd4d4}#status.has-error::before{background:#ff727c}
+main{max-width:940px;margin:-1.35rem auto 0;padding:0 1.25rem 4rem}
+.section-heading{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin:0 0 1rem;padding:1.35rem 0 .25rem}
+.section-heading h2{margin:0;color:#17233b;font-size:1.1rem;font-weight:700;letter-spacing:-.02em}
+.section-heading p{margin:0;color:#78859a;font-size:.82rem}
+#list{display:grid;gap:.85rem}
+.card{position:relative;overflow:hidden;padding:1.25rem 1.4rem 1.3rem 1.55rem;border:1px solid #e4e9f1;border-radius:1rem;background:#fff;box-shadow:0 4px 16px #2239570a;transition:transform .18s ease,box-shadow .18s ease}
+.card::before{position:absolute;inset:0 auto 0 0;width:4px;background:#a5afbf;content:""}
+.card:hover{transform:translateY(-2px);box-shadow:0 10px 24px #22395712}
+.card.kritiek::before{background:#d94b55}.card.hoog::before{background:#e58437}.card.middel::before{background:#d5a522}.card.laag::before{background:#3d9b73}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.65rem}
+.meta{color:#8591a3;font-size:.78rem}
+.severity{padding:.25rem .55rem;border-radius:999px;color:#59667a;background:#eef1f6;font-size:.68rem;font-weight:750;letter-spacing:.055em;text-transform:uppercase}
+.kritiek .severity{color:#a42d39;background:#fff0f0}.hoog .severity{color:#a84e19;background:#fff3e9}.middel .severity{color:#80600d;background:#fff8df}.laag .severity{color:#287453;background:#eaf7f0}
+.card h3{margin:0;color:#1b2b45;font-size:1.05rem;font-weight:680;letter-spacing:-.015em;line-height:1.5}
+.card a{color:inherit;text-decoration:none;text-decoration-thickness:1px;text-underline-offset:3px}
+.card a:hover{color:#24619a;text-decoration:underline}
+.card a:focus-visible{border-radius:3px;outline:3px solid #7bb7ed;outline-offset:3px}
+pre{margin:.65rem 0 0;color:#657287;font-family:inherit;font-size:.88rem;line-height:1.65;white-space:pre-wrap}
+.empty,.error{padding:1.5rem;border:1px solid #e4e9f1;border-radius:1rem;color:#657287;background:#fff}
+.error{color:#a42d39}
+@media(max-width:600px){header{padding:1.75rem 1.25rem 3.25rem}.section-heading{align-items:start;flex-direction:column;gap:.3rem}.card{padding:1.1rem 1rem 1.1rem 1.25rem}.card-top{align-items:start;flex-direction:column-reverse;gap:.55rem}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
 </style>
 </head>
 <body>
-<header><h1>Recente security risico's</h1><div id="status"></div></header>
-<main id="list">Laden…</main>
+<header>
+  <div class="brand"><span class="brand-mark" aria-hidden="true">S</span> Security intelligence</div>
+  <h1>Blijf een stap vooruit.</h1>
+  <p class="subtitle">Actuele beveiligingsadviezen van het NCSC, overzichtelijk op een rij. Bekijk direct wat er speelt en welke actie nodig is.</p>
+  <div id="status" role="status">Adviezen ophalen…</div>
+</header>
+<main>
+  <div class="section-heading">
+    <h2>Recente advisories</h2>
+    <p>Updates rechtstreeks van het NCSC</p>
+  </div>
+  <div id="list" aria-live="polite"><div class="empty">Adviezen laden…</div></div>
+</main>
 <script>
 const el = (t, props = {}, ...kids) => { const n = Object.assign(document.createElement(t), props); n.append(...kids); return n; };
 async function load() {
   const list = document.getElementById('list');
   try {
     const d = await (await fetch('/api/advisories')).json();
-    document.getElementById('status').textContent = d.updatedAt
-      ? 'Laatst bijgewerkt: ' + new Date(d.updatedAt).toLocaleString('nl-NL') : 'Nog niet geladen';
-    if (d.error) document.getElementById('status').append(' – fout: ' + d.error);
+    const status = document.getElementById('status');
+    status.classList.toggle('has-error', Boolean(d.error));
+    status.textContent = d.updatedAt
+      ? 'Bijgewerkt: ' + new Date(d.updatedAt).toLocaleString('nl-NL') : 'Nog niet geladen';
+    if (d.error) status.append(' – fout: ' + d.error);
     list.replaceChildren(...d.advisories.map((a) => {
       const card = el('div', { className: 'card ' + a.severity });
+      const severity = a.severity ? a.severity : 'Advisory';
+      const top = el('div', { className: 'card-top' },
+        el('span', { className: 'severity', textContent: severity }),
+        el('span', { className: 'meta', textContent: (a.published ? new Date(a.published).toLocaleString('nl-NL') : '') }));
       const h = el('h3', {}, a.link ? el('a', { href: a.link, target: '_blank', rel: 'noopener', textContent: a.title }) : a.title);
-      card.append(h,
-        el('div', { className: 'meta', textContent: (a.published ? new Date(a.published).toLocaleString('nl-NL') : '') }),
-        el('pre', { textContent: a.summary }));
+      card.append(top, h, el('pre', { textContent: a.summary }));
       return card;
     }));
-    if (!d.advisories.length) list.textContent = 'Geen advisories beschikbaar.';
+    if (!d.advisories.length) list.replaceChildren(el('div', { className: 'empty', textContent: 'Geen advisories beschikbaar.' }));
     setTimeout(load, Math.max(1, d.refreshMinutes) * 60000);
   } catch (e) {
-    list.textContent = 'Kon gegevens niet laden';
+    document.getElementById('status').classList.add('has-error');
+    document.getElementById('status').textContent = 'Verbinding met de feed mislukt';
+    list.replaceChildren(el('div', { className: 'error', textContent: 'Kon gegevens niet laden. Er wordt opnieuw geprobeerd.' }));
     setTimeout(load, 60000);
   }
 }
