@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Recente security risico's</title>
+<title>Recent security risks</title>
 <meta name="theme-color" content="#101d36">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
@@ -29,11 +29,18 @@ main{max-width:940px;margin:-1.35rem auto 0;padding:0 1.25rem 4rem}
 .card{position:relative;overflow:hidden;padding:1.25rem 1.4rem 1.3rem 1.55rem;border:1px solid #e4e9f1;border-radius:1rem;background:#fff;box-shadow:0 4px 16px #2239570a;transition:transform .18s ease,box-shadow .18s ease}
 .card::before{position:absolute;inset:0 auto 0 0;width:4px;background:#a5afbf;content:""}
 .card:hover{transform:translateY(-2px);box-shadow:0 10px 24px #22395712}
-.card.kritiek::before{background:#d94b55}.card.hoog::before{background:#e58437}.card.middel::before{background:#d5a522}.card.laag::before{background:#3d9b73}
+.card.critical::before{background:#d94b55}.card.high::before{background:#e58437}.card.medium::before{background:#d5a522}.card.low::before{background:#3d9b73}
 .card-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.65rem}
 .meta{color:#8591a3;font-size:.78rem}
 .severity{padding:.25rem .55rem;border-radius:999px;color:#59667a;background:#eef1f6;font-size:.68rem;font-weight:750;letter-spacing:.055em;text-transform:uppercase}
-.kritiek .severity{color:#a42d39;background:#fff0f0}.hoog .severity{color:#a84e19;background:#fff3e9}.middel .severity{color:#80600d;background:#fff8df}.laag .severity{color:#287453;background:#eaf7f0}
+.critical .severity{color:#a42d39;background:#fff0f0}.high .severity{color:#a84e19;background:#fff3e9}.medium .severity{color:#80600d;background:#fff8df}.low .severity{color:#287453;background:#eaf7f0}
+.risk{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.8rem}
+.risk-badge{display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .65rem;border-radius:.6rem;color:#59667a;background:#eef1f6;font-size:.75rem;font-weight:600}
+.risk-badge::before{width:.5rem;height:.5rem;border-radius:50%;background:#a5afbf;content:""}
+.risk-badge b{font-weight:750;text-transform:capitalize}
+.risk-badge.high{color:#a42d39;background:#fff0f0}.risk-badge.high::before{background:#d94b55}
+.risk-badge.medium{color:#80600d;background:#fff8df}.risk-badge.medium::before{background:#d5a522}
+.risk-badge.low{color:#287453;background:#eaf7f0}.risk-badge.low::before{background:#3d9b73}
 .card h3{margin:0;color:#1b2b45;font-size:1.05rem;font-weight:680;letter-spacing:-.015em;line-height:1.5}
 .card a{color:inherit;text-decoration:none;text-decoration-thickness:1px;text-underline-offset:3px}
 .card a:hover{color:#24619a;text-decoration:underline}
@@ -54,16 +61,16 @@ pre{margin:.65rem 0 0;color:#657287;font-family:inherit;font-size:.88rem;line-he
 <body>
 <header>
   <div class="brand"><span class="brand-mark" aria-hidden="true">NSi</span>Nathan's Security intelligence</div>
-  <h1>Blijf een stap vooruit.</h1>
-  <p class="subtitle">Actuele beveiligingsadviezen van het NCSC, overzichtelijk op een rij. Bekijk direct wat er speelt en welke actie nodig is.</p>
-  <div id="status" role="status">Adviezen ophalen…</div>
+  <h1>Stay one step ahead.</h1>
+  <p class="subtitle">Current security advisories from the NCSC, clearly laid out. See at a glance what is going on and what action is needed.</p>
+  <div id="status" role="status">Fetching advisories…</div>
 </header>
 <main>
   <div class="section-heading">
-    <h2>Recente advisories</h2>
-    <p>Updates rechtstreeks van het NCSC</p>
+    <h2>Recent advisories</h2>
+    <p>Updates straight from the NCSC</p>
   </div>
-  <div id="list" aria-live="polite"><div class="empty">Adviezen laden…</div></div>
+  <div id="list" aria-live="polite"><div class="empty">Loading advisories…</div></div>
   <div id="pagination"></div>
 </main>
 <script>
@@ -79,7 +86,7 @@ function renderAdvisories() {
   currentPage = Math.min(currentPage, Math.max(pageCount, 1));
 
   if (!advisories.length) {
-    list.replaceChildren(el('div', { className: 'empty', textContent: 'Geen advisories beschikbaar.' }));
+    list.replaceChildren(el('div', { className: 'empty', textContent: 'No advisories available.' }));
     pagination.replaceChildren();
     return;
   }
@@ -90,9 +97,16 @@ function renderAdvisories() {
     const severity = a.severity ? a.severity : 'Advisory';
     const top = el('div', { className: 'card-top' },
       el('span', { className: 'severity', textContent: severity }),
-      el('span', { className: 'meta', textContent: (a.published ? new Date(a.published).toLocaleString('nl-NL') : '') }));
+      el('span', { className: 'meta', textContent: (a.published ? new Date(a.published).toLocaleString('en-GB') : '') }));
     const h = el('h3', {}, a.link ? el('a', { href: a.link, target: '_blank', rel: 'noopener', textContent: a.title }) : a.title);
-    card.append(top, h, el('pre', { textContent: a.summary }));
+    card.append(top, h);
+    if (a.likelihood || a.impact) {
+      const badge = (label, level) => level
+        ? el('span', { className: 'risk-badge ' + level }, label + ': ', el('b', { textContent: level }))
+        : '';
+      card.append(el('div', { className: 'risk' }, badge('Likelihood', a.likelihood), badge('Impact', a.impact)));
+    }
+    card.append(el('pre', { textContent: a.summary }));
     return card;
   }));
 
@@ -104,11 +118,11 @@ function renderAdvisories() {
   const start = (currentPage - 1) * PAGE_SIZE + 1;
   const end = Math.min(currentPage * PAGE_SIZE, advisories.length);
   const nav = el('nav', { className: 'pagination' });
-  nav.setAttribute('aria-label', 'Paginering advisories');
+  nav.setAttribute('aria-label', 'Advisories pagination');
   nav.append(
-    el('button', { type: 'button', textContent: 'Vorige', disabled: currentPage === 1, onclick: () => changePage(currentPage - 1) }),
-    el('span', { className: 'page-status', textContent: `${start}–${end} van ${advisories.length}` }),
-    el('button', { type: 'button', textContent: 'Volgende', disabled: currentPage === pageCount, onclick: () => changePage(currentPage + 1) }),
+    el('button', { type: 'button', textContent: 'Previous', disabled: currentPage === 1, onclick: () => changePage(currentPage - 1) }),
+    el('span', { className: 'page-status', textContent: `${start}–${end} of ${advisories.length}` }),
+    el('button', { type: 'button', textContent: 'Next', disabled: currentPage === pageCount, onclick: () => changePage(currentPage + 1) }),
   );
   pagination.replaceChildren(nav);
 }
@@ -125,15 +139,15 @@ async function load() {
     const status = document.getElementById('status');
     status.classList.toggle('has-error', Boolean(d.error));
     status.textContent = d.updatedAt
-      ? 'Bijgewerkt: ' + new Date(d.updatedAt).toLocaleString('nl-NL') : 'Nog niet geladen';
-    if (d.error) status.append(' – fout: ' + d.error);
+      ? 'Updated: ' + new Date(d.updatedAt).toLocaleString('en-GB') : 'Not loaded yet';
+    if (d.error) status.append(' – error: ' + d.error);
     advisories = d.advisories;
     renderAdvisories();
     setTimeout(load, Math.max(1, d.refreshMinutes) * 60000);
   } catch (e) {
     document.getElementById('status').classList.add('has-error');
-    document.getElementById('status').textContent = 'Verbinding met de feed mislukt';
-    list.replaceChildren(el('div', { className: 'error', textContent: 'Kon gegevens niet laden. Er wordt opnieuw geprobeerd.' }));
+    document.getElementById('status').textContent = 'Connection to the feed failed';
+    list.replaceChildren(el('div', { className: 'error', textContent: 'Could not load data. Retrying shortly.' }));
     document.getElementById('pagination').replaceChildren();
     setTimeout(load, 60000);
   }

@@ -17,7 +17,7 @@ async function refresh() {
     state.error = null;
   } catch (err) {
     state.error = err.message;
-    console.error('Verversen mislukt:', err.message);
+    console.error('Refresh failed:', err.message);
   }
 }
 
@@ -42,7 +42,7 @@ function createServer() {
       res.writeHead(200, { 'Content-Type': type });
       fs.createReadStream(path.join(PUBLIC_DIR, file)).pipe(res);
     } else {
-      res.writeHead(404).end('Niet gevonden');
+      res.writeHead(404).end('Not found');
     }
   });
 }

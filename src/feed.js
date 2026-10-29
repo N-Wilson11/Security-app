@@ -34,6 +34,16 @@ function safeUrl(u) {
   return /^https?:\/\//i.test(u) ? u : '';
 }
 
+const LEVELS = { H: 'high', M: 'medium', L: 'low' };
+const SEVERITIES = { kritiek: 'critical', hoog: 'high', middel: 'medium', laag: 'low' };
+
+function parseRisk(title) {
+  const m = title.match(/\[([HML])\/([HML])\]/i);
+  return m
+    ? { likelihood: LEVELS[m[1].toUpperCase()], impact: LEVELS[m[2].toUpperCase()] }
+    : { likelihood: '', impact: '' };
+}
+
 function parseFeed(xml) {
   const items = xml.match(/<item[\s>][\s\S]*?<\/item>/gi) || [];
   return items
@@ -47,7 +57,8 @@ function parseFeed(xml) {
         title,
         link: safeUrl(tag(item, 'link')),
         summary: description.slice(0, 600),
-        severity: severity.toLowerCase(),
+        severity: SEVERITIES[severity.toLowerCase()] || '',
+        ...parseRisk(title),
         published: isNaN(date) ? null : date.toISOString(),
       };
     })
@@ -60,7 +71,7 @@ async function fetchAdvisories(url = FEED_URL) {
     headers: { 'User-Agent': 'security-app' },
     signal: AbortSignal.timeout(15000),
   });
-  if (!res.ok) throw new Error(`Feed gaf status ${res.status}`);
+  if (!res.ok) throw new Error(`Feed returned status ${res.status}`);
   return parseFeed(await res.text());
 }
 
