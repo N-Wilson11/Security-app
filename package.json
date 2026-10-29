@@ -2,9 +2,9 @@
   "name": "security-app",
   "version": "1.0.0",
   "description": "Dashboard met recente beveiligingsadvisories van het NCSC",
-  "main": "src/server.js",
+  "main": "src/local-server.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "node src/local-server.js",
     "test": "node --test test/*.test.js"
   },
   "engines": { "node": ">=18" },
